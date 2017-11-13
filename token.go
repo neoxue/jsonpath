@@ -13,10 +13,10 @@ const (
 
 type Token struct {
 	Type  string
-	Value string
+	Value interface{}
 }
 
-func NewToken(t string, v string) (Token, error) {
+func NewToken(t string, v interface{}) (Token, error) {
 	if err := validateType(t); err != nil {
 		return Token{}, err
 	}
