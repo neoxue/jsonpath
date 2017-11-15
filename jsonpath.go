@@ -13,38 +13,36 @@ Flow/JSONPath
 type JsonPath struct {
 	Data interface{}
 }
-type JsonPathResult struct {
-}
 
 var parsedTokenCache = make(map[string][]pathtoken)
 
-func (jp *JsonPath) Find(expression string) ([]interface{}, error) {
+func (jp *JsonPath) Find(expression string) *JsonPathResult {
 	var (
-		tokens       []pathtoken
-		err          error
-		t            pathtoken
-		cv           interface{}
-		collections  []interface{}
-		filter       filterbase
-		filterData   []interface{}
-		filterdValue []interface{}
-		ok           bool
+		tokens        []pathtoken
+		err           error
+		t             pathtoken
+		cv            interface{}
+		collections   []interface{}
+		filter        filterbase
+		filterData    []interface{}
+		filteredValue []interface{}
+		ok            bool
 	)
 	if tokens, err = jp.parseTokens(expression); err != nil {
-		return nil, err
+		return &JsonPathResult{Err: err}
 	}
 	collections = []interface{}{jp.Data}
 	for _, t = range tokens {
 		filter = t.buildFilter()
 		filterData = []interface{}{}
 		for _, cv = range collections {
-			if filterdValue, ok = filter.filter(cv); ok {
-				filterData = append(filterData, filterdValue...)
+			if filteredValue, ok = filter.filter(cv); ok {
+				filterData = append(filterData, filteredValue...)
 			}
 		}
 		collections = filterData
 	}
-	return collections, nil
+	return &JsonPathResult{Collections: collections}
 }
 func (jp *JsonPath) parseTokens(expr string) ([]pathtoken, error) {
 	var (

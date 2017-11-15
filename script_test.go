@@ -33,8 +33,8 @@ func Test_a(t *testing.T) {
 	var myjson interface{}
 	json.Unmarshal([]byte(str), &myjson)
 	jp := JsonPath{Data: myjson}
-	result, _ := jp.Find("$.c[e][3][d]")
-	fmt.Println(result)
+	result, finded, err := jp.Find("$.c[e][3][d]").First()
+	fmt.Println(result, finded, err)
 }
 
 func testint() int {
