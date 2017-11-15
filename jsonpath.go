@@ -11,7 +11,7 @@ Flow/JSONPath
 */
 
 type JsonPath struct {
-	data interface{}
+	Data interface{}
 }
 type JsonPathResult struct {
 }
@@ -33,7 +33,7 @@ func (jp *JsonPath) Find(expression string) ([]interface{}, error) {
 	if tokens, err = jp.parseTokens(expression); err != nil {
 		return nil, err
 	}
-	collections = []interface{}{jp.data}
+	collections = []interface{}{jp.Data}
 	for _, t = range tokens {
 		filter = t.buildFilter()
 		filterData = []interface{}{}
