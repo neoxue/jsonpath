@@ -9,6 +9,11 @@ import (
 
 Flow/JSONPath
 */
+const (
+	ACTION_SET   = "set"
+	ACTION_UNSET = "unset"
+	ACTION_FIND  = "find"
+)
 
 type JsonPath struct {
 	Data interface{}
@@ -16,27 +21,44 @@ type JsonPath struct {
 
 var parsedTokenCache = make(map[string][]pathtoken)
 
+func (jp *JsonPath) UnsetValue(expr string) ([]interface{}, error) {
+	jpr := jp.eval("unset", expr, nil)
+	return jpr.Collections, jpr.Err
+}
+func (jp *JsonPath) SetValue(expr string, v interface{}) ([]interface{}, error) {
+	jpr := jp.eval("set", expr, v)
+	return jpr.Collections, jpr.Err
+}
 func (jp *JsonPath) Find(expression string) *JsonPathResult {
+	return jp.eval("find", expression, nil)
+}
+
+func (jp *JsonPath) eval(action string, expression string, optionalValue interface{}) *JsonPathResult {
 	var (
-		tokens        []pathtoken
+		ok            bool
 		err           error
 		t             pathtoken
+		tokens        []pathtoken
+		filter        filterbase
+		i             int
 		cv            interface{}
 		collections   []interface{}
-		filter        filterbase
 		filterData    []interface{}
 		filteredValue []interface{}
-		ok            bool
 	)
 	if tokens, err = jp.parseTokens(expression); err != nil {
 		return &JsonPathResult{Err: err}
 	}
 	collections = []interface{}{jp.Data}
-	for _, t = range tokens {
+	for i, t = range tokens {
 		filter = t.buildFilter()
 		filterData = []interface{}{}
 		for _, cv = range collections {
-			if filteredValue, ok = filter.filter(cv); ok {
+			theAction := "find"
+			if i == len(tokens)-1 {
+				theAction = action
+			}
+			if filteredValue, ok = filter.filter(theAction, cv, optionalValue); ok {
 				filterData = append(filterData, filteredValue...)
 			}
 		}
@@ -44,6 +66,7 @@ func (jp *JsonPath) Find(expression string) *JsonPathResult {
 	}
 	return &JsonPathResult{Collections: collections}
 }
+
 func (jp *JsonPath) parseTokens(expr string) ([]pathtoken, error) {
 	var (
 		tokens []pathtoken

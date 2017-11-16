@@ -35,6 +35,8 @@ func Test_a(t *testing.T) {
 	jp := JsonPath{Data: myjson}
 	result, finded, err := jp.Find("$.c[e][3][d]").First()
 	fmt.Println(result, finded, err)
+	result = nil
+	fmt.Println(myjson)
 }
 
 func testint() int {

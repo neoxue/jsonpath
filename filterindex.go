@@ -4,7 +4,7 @@ type filterIndex struct {
 	t *pathtoken
 }
 
-func (f *filterIndex) filter(collection interface{}) ([]interface{}, bool) {
+func (f *filterIndex) filter(action string, collection interface{}, optionalValue interface{}) ([]interface{}, bool) {
 	var (
 		ah *access
 		ok bool
@@ -13,13 +13,31 @@ func (f *filterIndex) filter(collection interface{}) ([]interface{}, bool) {
 	if ah, ok = newaccess(collection); !ok {
 		return nil, false
 	}
-	if f.t.v == "*" {
-		return ah.arrayValues(), true
-	} else {
-		if v, ok = ah.getValue(f.t.v.(string)); ok {
-			return []interface{}{v}, true
+	switch action {
+	case "find":
+		if f.t.v == "*" {
+			return ah.arrayValues(), true
 		} else {
-			return nil, false
+			if v, ok = ah.getValue(f.t.v.(string)); ok {
+				return []interface{}{v}, true
+			} else {
+				return nil, false
+			}
+		}
+	case "set":
+		if f.t.v == "*" {
+			return ah.arrayValues(), true
+		} else {
+			ok = ah.setValue(f.t.v.(string), optionalValue)
+			return []interface{}{ok}, ok
+		}
+	case "unset":
+		if f.t.v == "*" {
+			return ah.arrayValues(), true
+		} else {
+			ok = ah.unsetValue(f.t.v.(string))
+			return []interface{}{ok}, ok
 		}
 	}
+	return nil, false //should not go here
 }

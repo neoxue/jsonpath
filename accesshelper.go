@@ -101,7 +101,7 @@ func (ah *access) setValue(key string, value interface{}) bool {
 				return true
 			}
 			// warning: do not use access setValue to expand collection length
-			logrus.WithFields(logrus.Fields{"package": "jsonpath", "action": "setValue", "key": key}).Warn(" could not expand arr length")
+			logrus.WithFields(logrus.Fields{"package": "jsonpath", "action": "set", "key": key, "ah": ah}).Warn(" could not expand arr length")
 			return false
 		}
 	}
@@ -130,7 +130,7 @@ func (ah *access) unsetValue(key string) bool {
 				return true
 			}
 			// warning: do not use access setValue to expand collection length
-			logrus.WithFields(logrus.Fields{"package": "jsonpath", "action": "setValue", "key": key}).Warn(" could not expand arr length")
+			logrus.WithFields(logrus.Fields{"package": "jsonpath", "action": "unset", "key": key, "ah": ah}).Warn(" could not expand arr length")
 			return false
 		}
 	}
@@ -149,4 +149,29 @@ func (ah *access) arrayValues() []interface{} {
 		return ah.cArr
 	}
 	return nil
+}
+
+func (ah *access) setAll(v interface{}) bool {
+	switch ah.t {
+	case ACCESS_OBJECT:
+		for i, _ := range ah.cMap {
+			ah.cMap[i] = v
+		}
+	case ACCESS_ARRAY:
+		for i, _ := range ah.cArr {
+			ah.cArr[i] = v
+		}
+	}
+	return false
+}
+func (ah *access) unsetAll() bool {
+	switch ah.t {
+	case ACCESS_OBJECT:
+		for i, _ := range ah.cMap {
+			delete(ah.cMap, i)
+		}
+	case ACCESS_ARRAY:
+		ah.cArr = nil
+	}
+	return false
 }

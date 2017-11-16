@@ -1,5 +1,5 @@
 package jsonpath
 
 type filterbase interface {
-	filter(collection interface{}) ([]interface{}, bool)
+	filter(action string, collection interface{}, optionalValue interface{}) ([]interface{}, bool)
 }
