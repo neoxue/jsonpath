@@ -75,7 +75,7 @@ func (ah *access) getValue(key string) (interface{}, bool) {
 		}
 	case ACCESS_ARRAY:
 		if vi, err = strconv.Atoi(key); err != nil {
-			logrus.WithFields(logrus.Fields{"package": "jsonpath", "action": "getValue", "key": key}).Warn(err)
+			logrus.WithFields(logrus.Fields{"package": "jsonpath", "action": "getValue", "key": key, "access.t": ah.t, "access.map": ah.cMap, "access.arr": ah.cArr}).Warn(err)
 			return nil, false
 		} else {
 			if vi+1 <= len(ah.cArr) {
@@ -101,7 +101,7 @@ func (ah *access) setValue(key string, value interface{}) bool {
 				return true
 			}
 			// warning: do not use access setValue to expand collection length
-			logrus.WithFields(logrus.Fields{"package": "jsonpath", "action": "set", "key": key, "ah": ah}).Warn(" could not expand arr length")
+			logrus.WithFields(logrus.Fields{"package": "jsonpath", "action": "set", "key": key, "access.t": ah.t, "access.map": ah.cMap, "access.arr": ah.cArr}).Warn(" could not expand arr length")
 			return false
 		}
 	}

@@ -26,14 +26,14 @@ func (f *filterIndex) filter(action string, collection interface{}, optionalValu
 		}
 	case "set":
 		if f.t.v == "*" {
-			return ah.arrayValues(), true
+			return []interface{}{ah.setAll(optionalValue)}, true
 		} else {
 			ok = ah.setValue(f.t.v.(string), optionalValue)
 			return []interface{}{ok}, ok
 		}
 	case "unset":
 		if f.t.v == "*" {
-			return ah.arrayValues(), true
+			return []interface{}{ah.unsetAll()}, true
 		} else {
 			ok = ah.unsetValue(f.t.v.(string))
 			return []interface{}{ok}, ok
