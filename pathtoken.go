@@ -32,7 +32,7 @@ func validateType(t string) error {
 	}
 	return errors.New("Invalid pathtoken: " + t)
 }
-func (t *pathtoken) buildFilter() filterbase {
+func (t *pathtoken) buildFilter() filterinterface {
 	switch t.typ {
 	case T_INDEX:
 		return &filterIndex{t: t}

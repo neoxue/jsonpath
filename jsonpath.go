@@ -5,16 +5,13 @@ import (
 	"encoding/hex"
 )
 
-/*
-
-Flow/JSONPath
-*/
 const (
-	ACTION_SET   = "set"
-	ACTION_UNSET = "unset"
-	ACTION_FIND  = "find"
+	actionSet   = "set"
+	actionUnset = "unset"
+	actionFind  = "find"
 )
 
+//	type JsonPath is a struct
 type JsonPath struct {
 	Data interface{}
 }
@@ -22,49 +19,46 @@ type JsonPath struct {
 var parsedTokenCache = make(map[string][]pathtoken)
 
 func (jp *JsonPath) UnsetValue(expr string) ([]interface{}, error) {
-	jpr := jp.eval("unset", expr, nil)
-	return jpr.Collections, jpr.Err
+	jpr := jp.eval(actionUnset, expr, nil)
+	return jpr.Collection, jpr.Err
 }
 func (jp *JsonPath) SetValue(expr string, v interface{}) ([]interface{}, error) {
-	jpr := jp.eval("set", expr, v)
-	return jpr.Collections, jpr.Err
+	jpr := jp.eval(actionSet, expr, v)
+	return jpr.Collection, jpr.Err
 }
-func (jp *JsonPath) Find(expression string) *JsonPathResult {
-	return jp.eval("find", expression, nil)
+func (jp *JsonPath) Find(expr string) *JsonPathResult {
+	return jp.eval(actionFind, expr, nil)
 }
 
 func (jp *JsonPath) eval(action string, expression string, optionalValue interface{}) *JsonPathResult {
 	var (
-		ok            bool
-		err           error
-		t             pathtoken
-		tokens        []pathtoken
-		filter        filterbase
-		i             int
-		cv            interface{}
-		collections   []interface{}
-		filterData    []interface{}
-		filteredValue []interface{}
+		err        error
+		t          pathtoken
+		tokens     []pathtoken
+		filter     filterinterface
+		i          int
+		cv         interface{}
+		collection []interface{}
 	)
 	if tokens, err = jp.parseTokens(expression); err != nil {
 		return &JsonPathResult{Err: err}
 	}
-	collections = []interface{}{jp.Data}
+	collection = []interface{}{jp.Data}
 	for i, t = range tokens {
 		filter = t.buildFilter()
-		filterData = []interface{}{}
-		for _, cv = range collections {
+		values := []interface{}{}
+		for _, cv = range collection {
 			theAction := "find"
 			if i == len(tokens)-1 {
 				theAction = action
 			}
-			if filteredValue, ok = filter.filter(theAction, cv, optionalValue); ok {
-				filterData = append(filterData, filteredValue...)
+			if filteredValue, ok := filter.filter(theAction, cv, optionalValue); ok {
+				values = append(values, filteredValue...)
 			}
 		}
-		collections = filterData
+		collection = values
 	}
-	return &JsonPathResult{Collections: collections}
+	return &JsonPathResult{Collection: collection}
 }
 
 func (jp *JsonPath) parseTokens(expr string) ([]pathtoken, error) {
@@ -87,6 +81,7 @@ func (jp *JsonPath) parseTokens(expr string) ([]pathtoken, error) {
 	if tokens, err = lexer.ParseExpressionTokens(); err != nil {
 		return nil, err
 	}
+
 	parsedTokenCache[cacheKeyStr] = tokens
 	return tokens, nil
 }
