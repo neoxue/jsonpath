@@ -11,26 +11,31 @@ const (
 	actionFind  = "find"
 )
 
-//	type JsonPath is a struct
+//JsonPath is exported
 type JsonPath struct {
 	Data interface{}
 }
 
 var parsedTokenCache = make(map[string][]pathtoken)
 
+//UnsetValue unsets json's value and return json
 func (jp *JsonPath) UnsetValue(expr string) ([]interface{}, error) {
 	jpr := jp.eval(actionUnset, expr, nil)
-	return jpr.Collection, jpr.Err
+	return jpr.collection, jpr.err
 }
+
+//SetValue sets json's value and return json
 func (jp *JsonPath) SetValue(expr string, v interface{}) ([]interface{}, error) {
 	jpr := jp.eval(actionSet, expr, v)
-	return jpr.Collection, jpr.Err
+	return jpr.collection, jpr.err
 }
-func (jp *JsonPath) Find(expr string) *JsonPathResult {
+
+//Find json's value and return JsonResult
+func (jp *JsonPath) Find(expr string) *Result {
 	return jp.eval(actionFind, expr, nil)
 }
 
-func (jp *JsonPath) eval(action string, expression string, optionalValue interface{}) *JsonPathResult {
+func (jp *JsonPath) eval(action string, expression string, optionalValue interface{}) *Result {
 	var (
 		err        error
 		t          pathtoken
@@ -41,24 +46,24 @@ func (jp *JsonPath) eval(action string, expression string, optionalValue interfa
 		collection []interface{}
 	)
 	if tokens, err = jp.parseTokens(expression); err != nil {
-		return &JsonPathResult{Err: err}
+		return &Result{err: err}
 	}
 	collection = []interface{}{jp.Data}
 	for i, t = range tokens {
 		filter = t.buildFilter()
 		values := []interface{}{}
 		for _, cv = range collection {
-			theAction := "find"
+			theAction := actionFind
 			if i == len(tokens)-1 {
 				theAction = action
 			}
-			if filteredValue, ok := filter.filter(theAction, cv, optionalValue); ok {
+			if filteredValue, ok := filter.eval(theAction, cv, optionalValue); ok {
 				values = append(values, filteredValue...)
 			}
 		}
 		collection = values
 	}
-	return &JsonPathResult{Collection: collection}
+	return &Result{collection: collection}
 }
 
 func (jp *JsonPath) parseTokens(expr string) ([]pathtoken, error) {
@@ -78,10 +83,9 @@ func (jp *JsonPath) parseTokens(expr string) ([]pathtoken, error) {
 	if lexer, err = newLexer(expr); err != nil {
 		return nil, err
 	}
-	if tokens, err = lexer.ParseExpressionTokens(); err != nil {
+	if tokens, err = lexer.parseExpressionTokens(); err != nil {
 		return nil, err
 	}
-
 	parsedTokenCache[cacheKeyStr] = tokens
 	return tokens, nil
 }

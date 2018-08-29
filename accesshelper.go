@@ -1,9 +1,8 @@
 package jsonpath
 
 import (
-	"strconv"
-
 	"github.com/sirupsen/logrus"
+	"strconv"
 )
 
 type access struct {

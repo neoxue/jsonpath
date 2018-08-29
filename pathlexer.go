@@ -9,17 +9,16 @@ import (
 )
 
 /*
- TODO to be decided, whether we chould use MATCH_KEY(for only string) diffrent to MATCH_INDEX
+ TODO to be decided, whether we should use MATCH_KEY(for only string) diffrent to matchIndex
 */
-
 const (
-	MATCH_INDEX                  = `^(\w+|\*)$`         // foo
-	MATCH_INDEXES                = `^(\s*\w+[\w,\s]+)$` // 0,1,2
-	MATCH_SLICE                  = `^([-\d:]+|:)$`      // [0:2:1]
-	MATCH_QUERY_RESULT           = `^\s*\(.+?\)\s*$`    // ?(@.length - 1)
-	MATCH_QUERY_MATCH            = `^\s*\?\(.+?\)\s*$`  // ?(@.foo = "bar")
-	MATCH_INDEX_IN_SINGLE_QUETES = `^\s*'(.+?)'\s*$`    // 'bar'
-	MATCH_INDEX_IN_DOUBLE_QUETES = `^\s*"(.+?)"\s*$`    // "bar"
+	matchIndex                 = `^(\w+|\*)$`         // foo
+	matchIndexes               = `^(\s*\w+[\w,\s]+)$` // 0,1,2
+	matchSlice                 = `^([-\d:]+|:)$`      // [0:2:1]
+	matchQueryScript           = `^\s*\(.+?\)\s*$`    // (@.length - 1)   script
+	matchQueryFilterExpression = `^\s*\?\(.+?\)\s*$`  // ?(@.foo = "bar")
+	matchIndexInSingleQuetes   = `^\s*'(.+?)'\s*$`    // 'bar'
+	matchIndexInDoubleQuetes   = `^\s*"(.+?)"\s*$`    // "bar"
 )
 
 type pathlexer struct {
@@ -39,7 +38,7 @@ func newLexer(expression string) (pathlexer, error) {
 	return pathlexer{Expr: expression}, nil
 }
 
-func (lexer *pathlexer) ParseExpressionTokens() ([]pathtoken, error) {
+func (lexer *pathlexer) parseExpressionTokens() ([]pathtoken, error) {
 	var (
 		squareBraketDepth = 0
 		tokenValue        = ""
@@ -54,7 +53,7 @@ func (lexer *pathlexer) ParseExpressionTokens() ([]pathtoken, error) {
 		char := lexer.Expr[i]
 		if squareBraketDepth == 0 && char == '.' {
 			if lexer.lookAhead(i, 1) == '.' {
-				if t, err = newToken(T_RECURSIVE, ""); err != nil {
+				if t, err = newToken(tokenRecursive, ""); err != nil {
 					return tokens, err
 				}
 				tokens = append(tokens, t)
@@ -62,13 +61,13 @@ func (lexer *pathlexer) ParseExpressionTokens() ([]pathtoken, error) {
 			continue
 		}
 		if char == '[' {
-			squareBraketDepth += 1
+			squareBraketDepth++
 			if squareBraketDepth == 1 {
 				continue
 			}
 		}
 		if char == ']' {
-			squareBraketDepth -= 1
+			squareBraketDepth--
 			if squareBraketDepth == 0 {
 				continue
 			}
@@ -133,21 +132,21 @@ func (lexer *pathlexer) CreateToken(value string) (pathtoken, error) {
 		v       string
 		vi      int
 	)
-	if matched, err = regexp.Match(MATCH_INDEX, []byte(value)); matched == true {
-		return newToken(T_INDEX, value)
+	if matched, err = regexp.Match(matchIndex, []byte(value)); matched == true {
+		return newToken(tokenIndex, value)
 	}
 
-	if matched, err = regexp.Match(MATCH_INDEXES, []byte(value)); matched == true {
+	if matched, err = regexp.Match(matchIndexes, []byte(value)); matched == true {
 		list := strings.Split(value, ",")
 		listi := make([]string, 0)
 		for _, v := range list {
 			v = strings.TrimSpace(v)
 			listi = append(listi, v)
 		}
-		return newToken(T_INDEXES, listi)
+		return newToken(tokenIndexes, listi)
 	}
 
-	if matched, err = regexp.Match(MATCH_SLICE, []byte(value)); matched == true {
+	if matched, err = regexp.Match(matchSlice, []byte(value)); matched == true {
 		a := make(map[string]int, 3)
 		parts := strings.Split(value, ":")
 		var word string
@@ -172,26 +171,26 @@ func (lexer *pathlexer) CreateToken(value string) (pathtoken, error) {
 				a[word] = vi
 			}
 		}
-		return newToken(T_SLICE, a)
+		return newToken(tokenSlice, a)
 	}
 
-	if matched, err = regexp.Match(MATCH_QUERY_RESULT, []byte(value)); matched == true {
+	if matched, err = regexp.Match(matchQueryScript, []byte(value)); matched == true {
 		a = value[1 : len(value)-1]
-		return newToken(T_QUERY_RESULT, a)
+		return newToken(tokenQueryScript, a)
 	}
-	if matched, err = regexp.Match(MATCH_QUERY_MATCH, []byte(value)); matched == true {
+	if matched, err = regexp.Match(matchQueryFilterExpression, []byte(value)); matched == true {
 		a = value[2 : len(value)-1]
-		return newToken(T_QUERY_MATCH, a)
+		return newToken(tokenQueryFilterExpression, a)
 	}
 
-	r, _ = regexp.Compile(MATCH_INDEX_IN_SINGLE_QUETES)
+	r, _ = regexp.Compile(matchIndexInSingleQuetes)
 	if matches := r.FindStringSubmatch(value); len(matches) > 1 {
-		return newToken(T_INDEX, matches[1])
+		return newToken(tokenIndex, matches[1])
 	}
 
-	r, _ = regexp.Compile(MATCH_INDEX_IN_DOUBLE_QUETES)
+	r, _ = regexp.Compile(matchIndexInDoubleQuetes)
 	if matches := r.FindStringSubmatch(value); len(matches) > 1 {
-		return newToken(T_INDEX, matches[1])
+		return newToken(tokenIndex, matches[1])
 	}
 
 	return pathtoken{}, errors.New("unable to parse pathtoken {" + value + "} in expression:" + lexer.Expr)

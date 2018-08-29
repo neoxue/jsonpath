@@ -3,12 +3,12 @@ package jsonpath
 import "errors"
 
 const (
-	T_INDEX        = "index"
-	T_RECURSIVE    = "recursive"
-	T_QUERY_MATCH  = "queryMatch"
-	T_QUERY_RESULT = "queryResult"
-	T_SLICE        = "slice"
-	T_INDEXES      = "indexes"
+	tokenIndex                 = "index"
+	tokenRecursive             = "recursive"
+	tokenQueryFilterExpression = "queryFilterExpression"
+	tokenQueryScript           = "queryScript"
+	tokenSlice                 = "slice"
+	tokenIndexes               = "indexes"
 )
 
 type pathtoken struct {
@@ -24,7 +24,7 @@ func newToken(t string, v interface{}) (pathtoken, error) {
 }
 
 func validateType(t string) error {
-	list := []string{T_INDEX, T_RECURSIVE, T_QUERY_RESULT, T_QUERY_MATCH, T_SLICE, T_INDEXES}
+	list := []string{tokenIndex, tokenRecursive, tokenQueryScript, tokenQueryFilterExpression, tokenSlice, tokenIndexes}
 	for _, b := range list {
 		if t == b {
 			return nil
@@ -34,7 +34,7 @@ func validateType(t string) error {
 }
 func (t *pathtoken) buildFilter() filterinterface {
 	switch t.typ {
-	case T_INDEX:
+	case tokenIndex:
 		return &filterIndex{t: t}
 	}
 	return nil
