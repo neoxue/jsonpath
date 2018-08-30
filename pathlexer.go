@@ -137,13 +137,7 @@ func (lexer *pathlexer) CreateToken(value string) (pathtoken, error) {
 	}
 
 	if matched, err = regexp.Match(matchIndexes, []byte(value)); matched == true {
-		list := strings.Split(value, ",")
-		listi := make([]string, 0)
-		for _, v := range list {
-			v = strings.TrimSpace(v)
-			listi = append(listi, v)
-		}
-		return newToken(tokenIndexes, listi)
+		return newToken(tokenIndexes, value)
 	}
 
 	if matched, err = regexp.Match(matchSlice, []byte(value)); matched == true {

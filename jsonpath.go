@@ -11,6 +11,7 @@ const (
 	actionFind  = "find"
 )
 
+//necessary to decide whether log jsonpath problems;
 //JsonPath is exported
 type JsonPath struct {
 	Data interface{}

@@ -4,19 +4,19 @@ import "errors"
 
 const (
 	tokenIndex                 = "index"
+	tokenIndexes               = "indexes"
 	tokenRecursive             = "recursive"
 	tokenQueryFilterExpression = "queryFilterExpression"
 	tokenQueryScript           = "queryScript"
 	tokenSlice                 = "slice"
-	tokenIndexes               = "indexes"
 )
 
 type pathtoken struct {
 	typ string
-	v   interface{}
+	v   string
 }
 
-func newToken(t string, v interface{}) (pathtoken, error) {
+func newToken(t string, v string) (pathtoken, error) {
 	if err := validateType(t); err != nil {
 		return pathtoken{}, err
 	}
@@ -36,6 +36,12 @@ func (t *pathtoken) buildFilter() filterinterface {
 	switch t.typ {
 	case tokenIndex:
 		return &filterIndex{t: t}
+	case tokenIndexes:
+		return &filterIndexes{t: t}
+	case tokenRecursive:
+		return &filterRecursive{t: t}
+	case tokenSlice:
+		return &filterSlice{t: t}
 	}
 	return nil
 }
