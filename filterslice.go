@@ -17,5 +17,3 @@ func (f *filterSlice) eval(action string, cv interface{}, optionalValue interfac
 		return nil, true
 	}
 }
-
-func (f *filterRecursive)
