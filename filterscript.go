@@ -5,12 +5,12 @@ import (
 	"strings"
 )
 
-type filterSlice struct {
+type filterScript struct {
 	t *pathtoken
 }
 
 // TODO action set and unset
-func (f *filterSlice) eval(action string, cv interface{}, optionalValue interface{}) ([]interface{}, bool) {
+func (f *filterScript) eval(action string, cv interface{}, optionalValue interface{}) ([]interface{}, bool) {
 	ah := newaccessins(cv)
 	length := 0
 	switch cv.(type) {
@@ -30,7 +30,8 @@ func (f *filterSlice) eval(action string, cv interface{}, optionalValue interfac
 	}
 }
 
-func (f *filterSlice) getIndexes(v string, length int) ([]int, bool) {
+// only support limit scripts
+func (f *filterScript) getIndexes(v string, length int) ([]int, bool) {
 	slice := strings.Split(v, ":")
 	start, _ := strconv.Atoi(slice[0])
 	end, _ := strconv.Atoi(slice[1])

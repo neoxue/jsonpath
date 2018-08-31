@@ -4,6 +4,7 @@ type accessinterface interface {
 	get(key string) ([]interface{}, bool)
 	set(key string, v interface{}) bool
 	unset(key string) bool
+	getByList(keys interface{}) ([]interface{}, bool)
 }
 
 func newaccessins(cv interface{}) accessinterface {

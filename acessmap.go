@@ -39,3 +39,28 @@ func (ah *accessmap) unset(key string) bool {
 	delete(ah.v, key)
 	return true
 }
+
+func (ah *accessmap) getByList(keys interface{}) ([]interface{}, bool) {
+	var vs = []interface{}{}
+	switch keys.(type) {
+	case []string:
+		for _, k := range keys.([]string) {
+			if v, ok := ah.v[k]; ok {
+				vs = append(vs, v)
+			}
+		}
+	}
+	return vs, true
+}
+
+// TODO
+func (ah *accessmap) setByList(keys []string) bool {
+
+	return true
+}
+
+// TODO
+func (ah *accessmap) unsetByList(keys []string) bool {
+	return true
+
+}

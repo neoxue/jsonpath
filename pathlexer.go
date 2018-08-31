@@ -140,32 +140,25 @@ func (lexer *pathlexer) CreateToken(value string) (pathtoken, error) {
 		return newToken(tokenIndexes, value)
 	}
 
+	// start:end:step, do not split it now;
 	if matched, err = regexp.Match(matchSlice, []byte(value)); matched == true {
-		a := make(map[string]int, 3)
+		a := make([]string, 3)
 		parts := strings.Split(value, ":")
-		var word string
 		for i, v = range parts {
-			switch i {
-			case 0:
-				word = "start"
-			case 1:
-				word = "end"
-			case 2:
-				word = "step"
-			default:
+			if i > 2 {
 				continue
 			}
 			if parts[i] == "" {
-				a[word] = 0
+				a[i] = "0"
 			} else {
 				v = strings.TrimSpace(v)
 				if vi, err = strconv.Atoi(v); err != nil {
 					return pathtoken{}, errors.Wrap(err, "unable to parse pathtoken {"+value+"}, strconv.Atoi failed in expression:"+lexer.Expr)
 				}
-				a[word] = vi
+				a[i] = v
 			}
 		}
-		return newToken(tokenSlice, a)
+		return newToken(tokenSlice, strings.Join(a, ":"))
 	}
 
 	if matched, err = regexp.Match(matchQueryScript, []byte(value)); matched == true {

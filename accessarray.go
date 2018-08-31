@@ -74,3 +74,25 @@ func (ah *accessarray) unset(key string) bool {
 	logrus.WithFields(logrus.Fields{"package": "jsonpath", "action": "set", "key": key, "access.arr": ah.v}).Warn(" could not expand arr length by 2")
 	return false
 }
+
+func (ah *accessarray) getByList(keys interface{}) ([]interface{}, bool) {
+	var vs = []interface{}{}
+
+	switch keys.(type) {
+	case []int:
+		for _, vi := range keys.([]int) {
+			vs = append(vs, ah.v[vi])
+		}
+	case string:
+		for _, key := range keys.([]string) {
+			var vi int
+			var err error
+			if vi, err = strconv.Atoi(key); err != nil {
+				logrus.WithFields(logrus.Fields{"package": "jsonpath", "action": "get arr by string key", "key": key, "access.arr": ah.v}).Warn(err)
+				break
+			}
+			vs = append(vs, ah.v[vi])
+		}
+	}
+	return vs, true
+}

@@ -15,13 +15,7 @@ func (f *filterIndexes) eval(action string, cv interface{}, optionalValue interf
 	}
 	switch action {
 	case actionFind:
-		var vs = []interface{}{}
-		for _, k := range tokens {
-			if v, ok := ah.get(k); ok {
-				vs = append(vs, v)
-			}
-		}
-		return vs, true
+		return ah.getByList(tokens)
 	case actionSet:
 		for _, k := range tokens {
 			ah.set(k, optionalValue)

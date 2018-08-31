@@ -12,7 +12,7 @@ import (
 
 func Test_a(t *testing.T) {
 	lexer, _ := newLexer(`$[1,2   ,  3]`)
-	tokens, err := lexer.ParseExpressionTokens()
+	tokens, err := lexer.parseExpressionTokens()
 	assert.Equal(t, nil, err)
 	expected := []string{"1", "2", "3"}
 
