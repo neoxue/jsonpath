@@ -130,7 +130,6 @@ func (lexer *pathlexer) CreateToken(value string) (pathtoken, error) {
 		r       *regexp.Regexp
 		i       int
 		v       string
-		vi      int
 	)
 	if matched, err = regexp.Match(matchIndex, []byte(value)); matched == true {
 		return newToken(tokenIndex, value)
@@ -152,7 +151,7 @@ func (lexer *pathlexer) CreateToken(value string) (pathtoken, error) {
 				a[i] = "0"
 			} else {
 				v = strings.TrimSpace(v)
-				if vi, err = strconv.Atoi(v); err != nil {
+				if _, err = strconv.Atoi(v); err != nil {
 					return pathtoken{}, errors.Wrap(err, "unable to parse pathtoken {"+value+"}, strconv.Atoi failed in expression:"+lexer.Expr)
 				}
 				a[i] = v

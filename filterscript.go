@@ -5,12 +5,14 @@ import (
 	"strings"
 )
 
+// @.length -1
 type filterScript struct {
 	t *pathtoken
 }
 
 // TODO action set and unset
 func (f *filterScript) eval(action string, cv interface{}, optionalValue interface{}) ([]interface{}, bool) {
+	f.doScript(cv)
 	ah := newaccessins(cv)
 	length := 0
 	switch cv.(type) {
@@ -30,26 +32,16 @@ func (f *filterScript) eval(action string, cv interface{}, optionalValue interfa
 	}
 }
 
-// only support limit scripts
-func (f *filterScript) getIndexes(v string, length int) ([]int, bool) {
-	slice := strings.Split(v, ":")
-	start, _ := strconv.Atoi(slice[0])
-	end, _ := strconv.Atoi(slice[1])
-	step, _ := strconv.Atoi(slice[2])
-	k := start
-	ks := []int{k}
-	if step < 1 {
-		step = 1
-	}
-	if end == 0 {
-		end = length
-	}
+func (f *filterScript) doScript(cv interface{}) []string {
+	if f.t.v[0] == '$'
 
-	for true {
-		if k+step < end {
-			k += step
-			ks = append(ks, k)
-		}
-	}
-	return ks, true
+
 }
+
+
+
+
+
+
+
+
