@@ -1,17 +1,19 @@
 package jsonpath
 
+import "errors"
+
 // this part should be rewrited to use a finite-state-machine
 // ofcourse use cache
 
 // lp op rp
 type expression struct {
 	sentence string
-	lp       interface{}
-	op       string
-	rp       interface{}
+	items    []struct {
+		str string
+		typ string
+	}
 }
 
-// special character  ! = ~ <>
 func (expr *expression) parse() error {
 	stack := []int32{}
 	tmp := ""
@@ -34,6 +36,7 @@ func (expr *expression) parse() error {
 					}
 				}
 			}
+			continue
 		}
 		if c == ' ' {
 			if len(stack) == 0 {
@@ -42,12 +45,28 @@ func (expr *expression) parse() error {
 			} else {
 				tmp += string(c)
 			}
+			continue
 		}
 
-		if
+		// is op, then
+		if isOp(c) {
+			if tmp == "" {
+				tmp += string(c)
+			}
+			if isOp
+			continue
+		}
+		// normal characters
+		if isNormalCharacter(c) {
+			if isOperator(tmp) {
 
+			}
+			tmp += string(c)
+			continue
+		}
+		return errors.New("expression contains unaccepted characters:" + string(c))
 	}
-
+	return nil
 }
 
 // verify whether is a number
@@ -59,6 +78,18 @@ func verifyJsonPathStartChar(a interface{}) bool {
 	return a == '$' || a == '@'
 }
 
-func isOp() {
+// special character  ! = ~ <>
+func isOpCharacter(c int32) bool {
+	return c == '<' || c == '=' || c == '>' || c == '!' || c == '~'
+}
+func isOperator(tmp string) bool {
+	if tmp != "" {
+		return isOpCharacter(tmp[0])
+	}
+	return false
+}
 
+// normal characters
+func isNormalCharacter(c int32) bool {
+	return true
 }
