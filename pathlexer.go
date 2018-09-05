@@ -152,21 +152,29 @@ func (lexer *pathlexer) CreateToken(value string) (pathtoken, error) {
 			} else {
 				v = strings.TrimSpace(v)
 				if _, err = strconv.Atoi(v); err != nil {
-					return pathtoken{}, errors.Wrap(err, "unable to parse pathtoken {"+value+"}, strconv.Atoi failed in expression:"+lexer.Expr)
+					return pathtoken{}, errors.Wrap(err, "jsonpath lexer: unable to parse pathtoken {"+value+"}, strconv.Atoi failed in expression:"+lexer.Expr)
 				}
 				a[i] = v
 			}
 		}
-		return newToken(tokenSlice, strings.Join(a, ":"))
+		return newToken(tokenSlice, a)
 	}
 
 	if matched, err = regexp.Match(matchQueryScript, []byte(value)); matched == true {
 		a = value[1 : len(value)-1]
-		return newToken(tokenQueryScript, a)
+		expr := &expression{sentence: a}
+		if err := expr.parse(); err != nil {
+			return pathtoken{}, errors.Wrap(err, "jsonpath lexer: parse query script error: {"+a+"}")
+		}
+		return newToken(tokenQueryScript, expr)
 	}
 	if matched, err = regexp.Match(matchQueryFilterExpression, []byte(value)); matched == true {
 		a = value[2 : len(value)-1]
-		return newToken(tokenQueryFilterExpression, a)
+		expr := &expression{sentence: a}
+		if err := expr.parse(); err != nil {
+			return pathtoken{}, errors.Wrap(err, "jsonpath lexer: parse query script error: {"+a+"}")
+		}
+		return newToken(tokenQueryFilterExpression, expr)
 	}
 
 	r, _ = regexp.Compile(matchIndexInSingleQuetes)

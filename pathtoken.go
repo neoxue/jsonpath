@@ -13,7 +13,7 @@ const (
 
 type pathtoken struct {
 	typ string
-	v   string
+	v   interface{}
 }
 
 func newToken(t string, v string) (pathtoken, error) {

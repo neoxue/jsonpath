@@ -6,6 +6,15 @@ import "errors"
 // ofcourse use cache
 
 // lp op rp
+// do not support backslash to escape characters
+/*
+supported normal characters:
+0-9 a-z A-Z
+_ . * ( ) []
+
+supported op characters:
++ - * / < > = ! ~
+*/
 type expression struct {
 	sentence string
 	items    []struct {
@@ -15,22 +24,61 @@ type expression struct {
 }
 
 func (expr *expression) parse() error {
-	stack := []int32{}
-	tmp := ""
-	strarr := []string{}
-	a := 0
-	for idx, c := range expr.sentence {
-		if c == '\'' || c == '"' {
-			tmp += string(c)
-			if idx > 1 && expr.sentence[idx-1] != '\\' {
-				continue
+	if err := expr.parseItems(); err != nil {
+		return err
+	}
+	if err := expr.validateItems(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// support only   val op val
+//           or   op val
+func (expr *expression) validateItems() error {
+	if len(expr.items) > 3 {
+		return errors.New("expression " + expr.sentence + " does not support 4 or more items")
+	}
+	// validate typs
+	for idx, item := range expr.items {
+		if item.typ == "op" && !isAvailableOp(item.str) {
+			return errors.New("expression " + expr.sentence + " operator {" + item.str + "} not valid")
+		}
+		if item.typ == "val" {
+			if isnumber(item.str) {
+				item.typ = "num"
+			} else if isstring(item.str) {
+				item.typ = "string"
+			} else if isjsonpath(item.str) {
+				item.typ = "jsonpath"
+			} else {
+				return errors.New("expression " + expr.sentence + " val {" + item.str + "} not valid")
 			}
+		}
+		if idx > 0 {
+			if item.typ == "op" && expr.items[idx-1].typ == "op" {
+				return errors.New("expression " + expr.sentence + " two ops, not valid")
+			}
+			if item.typ != "op" && expr.items[idx-1].typ != "op" {
+				return errors.New("expression " + expr.sentence + " two non-ops, not valid")
+			}
+		}
+	}
+	return nil
+}
+
+func (expr *expression) parseItems() error {
+	stack := []byte{}
+	tmp := []byte{}
+	for _, c := range ([]byte)(expr.sentence) {
+		if c == '\'' || c == '"' {
+			tmp = append(tmp, c)
 			if len(stack) > 0 {
 				if stack[len(stack)-1] != c {
 					stack = append(stack, c)
 				} else {
 					if len(stack) == 1 {
-						stack = []int32{}
+						stack = []byte{}
 					} else {
 						stack = stack[0 : len(stack)-1]
 					}
@@ -40,28 +88,49 @@ func (expr *expression) parse() error {
 		}
 		if c == ' ' {
 			if len(stack) == 0 {
-				strarr[a] = tmp
-				tmp = ""
+				typ := "val"
+				if isOperator(tmp) {
+					typ = "op"
+				}
+				expr.items = append(expr.items, struct {
+					str string
+					typ string
+				}{str: string(tmp), typ: typ})
+				tmp = []byte{}
 			} else {
-				tmp += string(c)
+				tmp = append(tmp, c)
 			}
 			continue
 		}
 
 		// is op, then
-		if isOp(c) {
-			if tmp == "" {
-				tmp += string(c)
+		if isOpCharacter(c) {
+			if len(tmp) > 0 {
+				if isOperator(tmp) {
+					tmp = append(tmp, c)
+				} else {
+					expr.items = append(expr.items, struct {
+						str string
+						typ string
+					}{str: string(tmp), typ: "val"})
+					tmp = []byte{c}
+				}
+				continue
 			}
-			if isOp
+			tmp = append(tmp, c)
 			continue
 		}
 		// normal characters
 		if isNormalCharacter(c) {
 			if isOperator(tmp) {
-
+				expr.items = append(expr.items, struct {
+					str string
+					typ string
+				}{str: string(tmp), typ: "val"})
+				tmp = []byte{c}
+				continue
 			}
-			tmp += string(c)
+			tmp = append(tmp, c)
 			continue
 		}
 		return errors.New("expression contains unaccepted characters:" + string(c))
@@ -78,18 +147,37 @@ func verifyJsonPathStartChar(a interface{}) bool {
 	return a == '$' || a == '@'
 }
 
-// special character  ! = ~ <>
-func isOpCharacter(c int32) bool {
-	return c == '<' || c == '=' || c == '>' || c == '!' || c == '~'
+// op character  ! = ~ <>  + -
+func isOpCharacter(c byte) bool {
+	return c == '<' || c == '=' || c == '>' || c == '!' || c == '~' || c == '+' || c == '-' || c == '*' || c == '/'
 }
-func isOperator(tmp string) bool {
-	if tmp != "" {
+
+// operator should contains only opcharacter
+func isOperator(tmp []byte) bool {
+	if len(tmp) > 0 {
 		return isOpCharacter(tmp[0])
 	}
 	return false
 }
 
 // normal characters
-func isNormalCharacter(c int32) bool {
-	return true
+func isNormalCharacter(c byte) bool {
+	if c == '_' || c == '.' || c < '*' || c == '@' || c == '$' || c == '(' || c == ')' || c == '[' || c == ']' {
+		return true
+	}
+	if (c > 'a' && c < 'z') || (c > 'A' && c < 'Z') || (c > '0' && c < '9') {
+		return true
+	}
+	return false
+}
+
+func isAvailableOp(tmp string) bool {
+	return tmp == "!" || tmp == "==" || tmp == "<" || tmp == ">" || tmp == "<=" || tmp == ">=" || tmp == "=~" || tmp == "+" || tmp == "-" || tmp == "*" || tmp == "-"
+}
+
+func isstring(tmp string) bool {
+	return tmp[0] == tmp[len(tmp)-1] && (tmp[0] == '"' || tmp[0] == '\'')
+}
+func isjsonpath(tmp string) bool {
+	return tmp[0] == '$' || tmp[0] == '@'
 }

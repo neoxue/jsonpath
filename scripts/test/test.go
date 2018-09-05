@@ -3,10 +3,21 @@ package main
 import (
 	"container/ring"
 	"fmt"
+	"reflect"
 )
 
 func main() {
-	RingFunc()
+
+	str := "test'"
+	for _, c := range str {
+		fmt.Println(reflect.TypeOf(c))
+		fmt.Println(c == '\'')
+		fmt.Println(c)
+	}
+	fmt.Println(str[4] == '\'')
+	fmt.Println(reflect.TypeOf(str[1]))
+
+	//RingFunc()
 
 }
 func RingFunc() {
