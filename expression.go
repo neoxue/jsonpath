@@ -18,7 +18,7 @@ supported op characters:
 type expression struct {
 	sentence string
 	items    []struct {
-		str string
+		val string
 		typ string
 	}
 }
@@ -36,23 +36,27 @@ func (expr *expression) parse() error {
 // support only   val op val
 //           or   op val
 func (expr *expression) validateItems() error {
-	if len(expr.items) > 3 {
-		return errors.New("expression " + expr.sentence + " does not support 4 or more items")
+	if len(expr.items) != 3 {
+		return errors.New("expression " + expr.sentence + " only supports 3 items")
+	}
+	if expr.items[0].val[0] != '@' {
+		return errors.New("expression " + expr.sentence + " first item should be jsonpath")
 	}
 	// validate typs
 	for idx, item := range expr.items {
-		if item.typ == "op" && !isAvailableOp(item.str) {
-			return errors.New("expression " + expr.sentence + " operator {" + item.str + "} not valid")
+		if item.typ == "op" && !isAvailableOp(item.val) {
+			return errors.New("expression " + expr.sentence + " operator {" + item.val + "} not valid")
 		}
 		if item.typ == "val" {
-			if isnumber(item.str) {
+			if isnumber(item.val) {
 				item.typ = "num"
-			} else if isstring(item.str) {
+			} else if isstring(item.val) {
 				item.typ = "string"
-			} else if isjsonpath(item.str) {
+				item.val = item.val[1 : len(item.val)-2]
+			} else if isjsonpath(item.val) {
 				item.typ = "jsonpath"
 			} else {
-				return errors.New("expression " + expr.sentence + " val {" + item.str + "} not valid")
+				return errors.New("expression " + expr.sentence + " val {" + item.val + "} not valid")
 			}
 		}
 		if idx > 0 {
@@ -93,9 +97,9 @@ func (expr *expression) parseItems() error {
 					typ = "op"
 				}
 				expr.items = append(expr.items, struct {
-					str string
+					val string
 					typ string
-				}{str: string(tmp), typ: typ})
+				}{val: string(tmp), typ: typ})
 				tmp = []byte{}
 			} else {
 				tmp = append(tmp, c)
@@ -110,9 +114,9 @@ func (expr *expression) parseItems() error {
 					tmp = append(tmp, c)
 				} else {
 					expr.items = append(expr.items, struct {
-						str string
+						val string
 						typ string
-					}{str: string(tmp), typ: "val"})
+					}{val: string(tmp), typ: "val"})
 					tmp = []byte{c}
 				}
 				continue
@@ -124,9 +128,9 @@ func (expr *expression) parseItems() error {
 		if isNormalCharacter(c) {
 			if isOperator(tmp) {
 				expr.items = append(expr.items, struct {
-					str string
+					val string
 					typ string
-				}{str: string(tmp), typ: "val"})
+				}{val: string(tmp), typ: "val"})
 				tmp = []byte{c}
 				continue
 			}
@@ -136,11 +140,6 @@ func (expr *expression) parseItems() error {
 		return errors.New("expression contains unaccepted characters:" + string(c))
 	}
 	return nil
-}
-
-// verify whether is a number
-func isnumber(a interface{}) bool {
-	return true
 }
 
 func verifyJsonPathStartChar(a interface{}) bool {
@@ -173,11 +172,4 @@ func isNormalCharacter(c byte) bool {
 
 func isAvailableOp(tmp string) bool {
 	return tmp == "!" || tmp == "==" || tmp == "<" || tmp == ">" || tmp == "<=" || tmp == ">=" || tmp == "=~" || tmp == "+" || tmp == "-" || tmp == "*" || tmp == "-"
-}
-
-func isstring(tmp string) bool {
-	return tmp[0] == tmp[len(tmp)-1] && (tmp[0] == '"' || tmp[0] == '\'')
-}
-func isjsonpath(tmp string) bool {
-	return tmp[0] == '$' || tmp[0] == '@'
 }

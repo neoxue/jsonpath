@@ -4,9 +4,18 @@ import (
 	"container/ring"
 	"fmt"
 	"reflect"
+	"strconv"
 )
 
 func main() {
+
+	str1 := "20.99"
+	test1, err := strconv.Atoi(str1)
+	test2, err2 := strconv.ParseFloat(str1)
+	fmt.Println(err2)
+	fmt.Println(test2)
+	fmt.Println(err)
+	fmt.Println(test1)
 
 	str := "test'"
 	for _, c := range str {
