@@ -29,7 +29,12 @@ func newLexer(expression string) (pathlexer, error) {
 	if len(expression) < 1 {
 		return pathlexer{}, errors.New("lexer error: expression empty")
 	}
-	if expression[0] == '$' {
+	if len(expression) == 1 && (expression[0] == '@' || expression[0] == '$') {
+		return pathlexer{Expr: ""}, nil
+	}
+	if expression[0] != '$' && expression[0] != '@' {
+		return pathlexer{}, errors.New("lexer error: the first char is not '$' or '@'")
+	} else {
 		expression = expression[1:]
 	}
 	if expression[0] != '.' && expression[0] != '[' {
@@ -49,6 +54,9 @@ func (lexer *pathlexer) parseExpressionTokens() ([]pathtoken, error) {
 		tokens []pathtoken
 	)
 	tokens = make([]pathtoken, 0)
+	if lexer.Expr == "" {
+		return tokens, nil
+	}
 	for i := 0; i < length; i++ {
 		char := lexer.Expr[i]
 		if squareBraketDepth == 0 && char == '.' {
@@ -141,31 +149,34 @@ func (lexer *pathlexer) CreateToken(value string) (pathtoken, error) {
 
 	// start:end:step, do not split it now;
 	if matched, err = regexp.Match(matchSlice, []byte(value)); matched == true {
-		a := make([]string, 3)
+		a := make([]int, 3)
 		parts := strings.Split(value, ":")
 		for i, v = range parts {
 			if i > 2 {
 				continue
 			}
 			if parts[i] == "" {
-				a[i] = "0"
+				a[i] = 0
 			} else {
 				v = strings.TrimSpace(v)
-				if _, err = strconv.Atoi(v); err != nil {
+				var vi int
+				if vi, err = strconv.Atoi(v); err != nil {
 					return pathtoken{}, errors.Wrap(err, "jsonpath lexer: unable to parse pathtoken {"+value+"}, strconv.Atoi failed in expression:"+lexer.Expr)
 				}
-				a[i] = v
+				a[i] = vi
 			}
 		}
 		return newToken(tokenSlice, a)
 	}
 
+	// now do not support script
 	if matched, err = regexp.Match(matchQueryScript, []byte(value)); matched == true {
 		a = value[1 : len(value)-1]
 		expr := &expression{sentence: a}
 		if err := expr.parse(); err != nil {
 			return pathtoken{}, errors.Wrap(err, "jsonpath lexer: parse query script error: {"+a+"}")
 		}
+		return pathtoken{}, errors.New("jsonpath lexer: do not support query script now: {" + a + "}")
 		return newToken(tokenQueryScript, expr)
 	}
 	if matched, err = regexp.Match(matchQueryFilterExpression, []byte(value)); matched == true {

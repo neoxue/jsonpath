@@ -10,7 +10,7 @@ func (f *filterIndexes) eval(action string, cv interface{}, optionalValue interf
 	ah := newaccessins(cv)
 	var tokens []string
 	var ok bool
-	if tokens, ok = f.getIndexes(f.t.v); !ok {
+	if tokens, ok = f.getIndexes(f.t.v.(string)); !ok {
 		return nil, false
 	}
 	switch action {

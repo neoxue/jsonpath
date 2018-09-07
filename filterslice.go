@@ -1,10 +1,5 @@
 package jsonpath
 
-import (
-	"strconv"
-	"strings"
-)
-
 type filterSlice struct {
 	t *pathtoken
 }
@@ -17,7 +12,7 @@ func (f *filterSlice) eval(action string, cv interface{}, optionalValue interfac
 	case []interface{}:
 		length = len(cv.([]interface{}))
 	}
-	ks, _ := f.getIndexes(f.t.v, length)
+	ks, _ := f.getIndexes(f.t.v.([]int), length)
 	switch action {
 	case actionFind:
 		return ah.getByList(ks)
@@ -30,11 +25,10 @@ func (f *filterSlice) eval(action string, cv interface{}, optionalValue interfac
 	}
 }
 
-func (f *filterSlice) getIndexes(v string, length int) ([]int, bool) {
-	slice := strings.Split(v, ":")
-	start, _ := strconv.Atoi(slice[0])
-	end, _ := strconv.Atoi(slice[1])
-	step, _ := strconv.Atoi(slice[2])
+func (f *filterSlice) getIndexes(v []int, length int) ([]int, bool) {
+	start := v[0]
+	end := v[1]
+	step := v[2]
 	k := start
 	ks := []int{k}
 	if step < 1 {
@@ -48,6 +42,8 @@ func (f *filterSlice) getIndexes(v string, length int) ([]int, bool) {
 		if k+step < end {
 			k += step
 			ks = append(ks, k)
+		} else {
+			break
 		}
 	}
 	return ks, true

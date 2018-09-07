@@ -2,24 +2,33 @@ package jsonpath
 
 import (
 	"github.com/kataras/go-errors"
-	"github.com/labstack/gommon/log"
 	"strconv"
 )
 
-func isstring(tmp string) bool {
-	return tmp[0] == tmp[len(tmp)-1] && (tmp[0] == '"' || tmp[0] == '\'')
+func isquotestring(tmp string) bool {
+	return len(tmp) > 1 && tmp[0] == tmp[len(tmp)-1] && (tmp[0] == '"' || tmp[0] == '\'')
 }
 func isjsonpath(tmp string) bool {
 	return tmp[0] == '$' || tmp[0] == '@'
 }
 
 // verify whether is a number
-func isnumber(a interface{}) bool {
+func isNumber(a interface{}) bool {
+	return false
+}
+func isString(a interface{}) bool {
 	return true
 }
 
-func convertnum(a interface{}) bool {
-
+// verify whether is a number (string)
+func isnumberstring(a string) bool {
+	if _, err := strconv.Atoi(a); err == nil {
+		return true
+	}
+	if _, err := strconv.ParseFloat(a, 64); err == nil {
+		return true
+	}
+	return false
 }
 
 // rules:
@@ -36,32 +45,43 @@ func compare_valstring(lv string, rv string, op string) (bool, error) {
 	if err3 == nil && err4 == nil {
 		return compareFloat(lv2, rv2, op)
 	}
-
 	return compareString(lv, rv, op)
 }
 
 //generic is necessary......
 func compareString(lv string, rv string, op string) (bool, error) {
 	switch op {
-
+	case "==":
+		return lv == rv, nil
+	case "!=":
+		return lv != rv, nil
+	case "<":
+		return lv < rv, nil
+	case ">":
+		return lv > rv, nil
+	case ">=":
+		return lv >= rv, nil
+	case "<=":
+		return lv <= rv, nil
+	default:
+		return false, errors.New("compare int operator {" + op + "} not supported")
 	}
-
 }
 
-func compareInt(lv1 int, rv1 int, op string) (bool, error) {
+func compareInt(lv int, rv int, op string) (bool, error) {
 	switch op {
 	case "==":
-		return lv1 == rv1, nil
+		return lv == rv, nil
 	case "!=":
-		return lv1 != rv1, nil
+		return lv != rv, nil
 	case "<":
-		return lv1 < rv1, nil
+		return lv < rv, nil
 	case ">":
-		return lv1 > rv1, nil
+		return lv > rv, nil
 	case ">=":
-		return lv1 >= rv1, nil
+		return lv >= rv, nil
 	case "<=":
-		return lv1 <= rv1, nil
+		return lv <= rv, nil
 	default:
 		return false, errors.New("compare int operator {" + op + "} not supported")
 	}

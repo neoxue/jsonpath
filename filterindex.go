@@ -6,13 +6,14 @@ type filterIndex struct {
 
 func (f *filterIndex) eval(action string, cv interface{}, optionalValue interface{}) ([]interface{}, bool) {
 	ah := newaccessins(cv)
+	k := f.t.v.(string)
 	switch action {
 	case actionFind:
-		return ah.get(f.t.v)
+		return ah.get(k)
 	case actionSet:
-		return nil, ah.set(f.t.v, optionalValue)
+		return nil, ah.set(k, optionalValue)
 	case actionUnset:
-		return nil, ah.unset(f.t.v)
+		return nil, ah.unset(k)
 	default:
 		return nil, true
 	}

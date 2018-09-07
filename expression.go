@@ -1,6 +1,8 @@
 package jsonpath
 
-import "errors"
+import (
+	"errors"
+)
 
 // this part should be rewrited to use a finite-state-machine
 // ofcourse use cache
@@ -49,12 +51,12 @@ func (expr *expression) validateItems() error {
 		}
 		if item.typ == "val" {
 			if isnumber(item.val) {
-				item.typ = "num"
-			} else if isstring(item.val) {
-				item.typ = "string"
-				item.val = item.val[1 : len(item.val)-2]
+				expr.items[idx].typ = "num"
+			} else if isquotestring(item.val) {
+				expr.items[idx].typ = "string"
+				expr.items[idx].val = item.val[1 : len(item.val)-1]
 			} else if isjsonpath(item.val) {
-				item.typ = "jsonpath"
+				expr.items[idx].typ = "jsonpath"
 			} else {
 				return errors.New("expression " + expr.sentence + " val {" + item.val + "} not valid")
 			}
@@ -74,6 +76,7 @@ func (expr *expression) validateItems() error {
 func (expr *expression) parseItems() error {
 	stack := []byte{}
 	tmp := []byte{}
+
 	for _, c := range ([]byte)(expr.sentence) {
 		if c == '\'' || c == '"' {
 			tmp = append(tmp, c)
@@ -138,6 +141,18 @@ func (expr *expression) parseItems() error {
 			continue
 		}
 		return errors.New("expression contains unaccepted characters:" + string(c))
+	}
+	if len(tmp) > 0 {
+		var op string
+		if isOperator(tmp) {
+			op = "op"
+		} else {
+			op = "val"
+		}
+		expr.items = append(expr.items, struct {
+			val string
+			typ string
+		}{val: string(tmp), typ: op})
 	}
 	return nil
 }

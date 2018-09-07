@@ -1,6 +1,9 @@
 package jsonpath
 
-import "errors"
+import (
+	"errors"
+	"github.com/sirupsen/logrus"
+)
 
 const (
 	tokenIndex                 = "index"
@@ -16,7 +19,7 @@ type pathtoken struct {
 	v   interface{}
 }
 
-func newToken(t string, v string) (pathtoken, error) {
+func newToken(t string, v interface{}) (pathtoken, error) {
 	if err := validateType(t); err != nil {
 		return pathtoken{}, err
 	}
@@ -32,16 +35,21 @@ func validateType(t string) error {
 	}
 	return errors.New("Invalid pathtoken: " + t)
 }
-func (t *pathtoken) buildFilter() filterinterface {
+func (t *pathtoken) buildFilter(root *JsonPath) (filterinterface, error) {
 	switch t.typ {
 	case tokenIndex:
-		return &filterIndex{t: t}
+		return &filterIndex{t: t}, nil
 	case tokenIndexes:
-		return &filterIndexes{t: t}
+		return &filterIndexes{t: t}, nil
 	case tokenRecursive:
-		return &filterRecursive{t: t}
+		return &filterRecursive{t: t}, nil
 	case tokenSlice:
-		return &filterSlice{t: t}
+		return &filterSlice{t: t}, nil
+	case tokenQueryFilterExpression:
+		return &filterFilterExpression{t: t, root: root}, nil
+	case tokenQueryScript:
+		return &filterScript{t: t, root: root}, nil
 	}
-	return nil
+	logrus.Error(t)
+	return nil, errors.New("jsonpath build filter unsupported filter")
 }
