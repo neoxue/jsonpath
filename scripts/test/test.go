@@ -9,9 +9,12 @@ import (
 
 func main() {
 
+	fmt.Println("abc" > "ac")
+	fmt.Println("abc" < "ac")
+
 	str1 := "20.99"
 	test1, err := strconv.Atoi(str1)
-	test2, err2 := strconv.ParseFloat(str1)
+	test2, err2 := strconv.ParseFloat(str1, 64)
 	fmt.Println(err2)
 	fmt.Println(test2)
 	fmt.Println(err)
