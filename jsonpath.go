@@ -3,8 +3,6 @@ package jsonpath
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"github.com/lestrrat/go-file-rotatelogs"
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -12,13 +10,6 @@ const (
 	actionUnset = "unset"
 	actionFind  = "find"
 )
-
-func init() {
-	logrus.SetFormatter(&logrus.TextFormatter{QuoteEmptyFields: false, ForceColors: true, FullTimestamp: true, DisableColors: false})
-	rl, _ := rotatelogs.New("/data1/ms/log/logrus.%Y%m%d")
-	logrus.SetOutput(rl)
-	logrus.SetLevel(logrus.DebugLevel)
-}
 
 //necessary to decide whether log jsonpath problems;
 //JsonPath is exported

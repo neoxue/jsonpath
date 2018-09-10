@@ -2,10 +2,19 @@ package jsonpath
 
 import (
 	"encoding/json"
+	"github.com/lestrrat/go-file-rotatelogs"
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 )
+
+func doinit() {
+	logrus.SetFormatter(&logrus.TextFormatter{QuoteEmptyFields: false, ForceColors: true, FullTimestamp: true, DisableColors: false})
+	rl, _ := rotatelogs.New("/data1/ms/log/logrus.%Y%m%d")
+	logrus.SetOutput(rl)
+	logrus.SetLevel(logrus.DebugLevel)
+}
 
 func TestNewJsonPath(t *testing.T) {
 	data := map[string]interface{}{"a": "test"}
