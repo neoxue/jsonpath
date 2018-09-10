@@ -1,11 +1,9 @@
 package jsonpath
 
 import (
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"reflect"
 	"regexp"
-	"strconv"
 )
 
 //filter expression
@@ -38,13 +36,13 @@ func (f *filterFilterExpression) eval(action string, cv interface{}, optionalVal
 					njp = &JsonPath{Data: v}
 				}
 				if rval, got, err := njp.Find(expr.items[2].val).First(); err != nil {
-					logrus.Error(err)
+					logrus.Warn(err)
 				} else if got == true {
 					if f.doOp(val, rval, op) {
 						result = append(result, v)
 					}
 				} else {
-					logrus.Error("rv jsonpath {" + expr.items[2].val + "} nothing found")
+					logrus.Warn("rv jsonpath {" + expr.items[2].val + "} nothing found")
 				}
 			default:
 				if f.doOp(val, expr.items[2].val, op) {
@@ -74,43 +72,57 @@ func (f *filterFilterExpression) getCandidates(cv interface{}) []interface{} {
 }
 
 /*
+	only
 	number  -> number compare
 	string  -> string compare
 	if =~ all trans to string
 */
 func (f *filterFilterExpression) doOp(lv interface{}, rv interface{}, op string) bool {
-	fmt.Println(lv)
-	fmt.Println(rv)
-
 	switch op {
-	case "==":
-		fallthrough
-	case "!=":
-		fallthrough
-	case ">":
-		fallthrough
-	case ">=":
-		fallthrough
-	case "<":
-		fallthrough
-	case "<=":
-		if ret, err := compare_valstring(lv, rv, op); err != nil {
-			logrus.Error(err)
-			// handle err
-		} else {
-			return ret
+	case "==", "!=", ">", ">=", "<", "<=":
+		lv1, ok1 := tryConvertFloat64(lv)
+		rv1, ok2 := tryConvertFloat64(rv)
+		if ok1 && ok2 {
+			if got, err := compareFloat(lv1, rv1, op); err != nil {
+				logrus.Warn(err)
+				return false
+			} else {
+				return got
+			}
 		}
-
+		switch lv.(type) {
+		case string:
+			switch rv.(type) {
+			case string:
+				if got, err := compareString(lv.(string), rv.(string), op); err != nil {
+					logrus.Warn(err)
+					return false
+				} else {
+					return got
+				}
+			}
+		}
+		return false
 	case "=~":
 		// trans to string
-
-		if r, err := regexp.Compile(rv); err != nil {
-			logrus.Error(err)
+		var lv1, rv1 string
+		if reflect.TypeOf(lv) == reflect.TypeOf("string") {
+			lv1 = lv.(string)
 		} else {
-			return r.MatchString(lv)
+			return false
+		}
+		if reflect.TypeOf(rv) == reflect.TypeOf("string") {
+			rv1 = rv.(string)
+		} else {
+			return false
+		}
+		if r, err := regexp.Compile(rv1); err != nil {
+			logrus.Warn(err)
+		} else {
+			return r.MatchString(lv1)
 		}
 	}
 	// error op not supported
-	logrus.Error("error: filter expression op{" + op + "} not supported")
+	logrus.Warn("error: filter expression op{" + op + "} not supported")
 	return false
 }

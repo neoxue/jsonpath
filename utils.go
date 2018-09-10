@@ -12,12 +12,42 @@ func isjsonpath(tmp string) bool {
 	return tmp[0] == '$' || tmp[0] == '@'
 }
 
-// verify whether is a number
-func isNumber(a interface{}) bool {
-	return false
-}
-func isString(a interface{}) bool {
-	return true
+func tryConvertFloat64(a interface{}) (float64, bool) {
+	switch a.(type) {
+	case int8:
+		return float64(a.(int8)), true
+	case int16:
+		return float64(a.(int16)), true
+	case int32:
+		return float64(a.(int32)), true
+	case int64:
+		return float64(a.(int64)), true
+	case uint8:
+		return float64(a.(uint8)), true
+	case uint16:
+		return float64(a.(uint16)), true
+	case uint32:
+		return float64(a.(uint32)), true
+	case uint64:
+		return float64(a.(uint64)), true
+	case float32:
+		return float64(a.(float32)), true
+	case float64:
+		return a.(float64), true
+	case bool:
+		if true == a.(bool) {
+			return 1, true
+		} else {
+			return 0, true
+		}
+	case string:
+		if got, err := strconv.ParseFloat(a.(string), 64); err == nil {
+			return got, true
+		} else {
+			return 0, false
+		}
+	}
+	return 0, false
 }
 
 // verify whether is a number (string)

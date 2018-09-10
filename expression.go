@@ -50,7 +50,7 @@ func (expr *expression) validateItems() error {
 			return errors.New("expression " + expr.sentence + " operator {" + item.val + "} not valid")
 		}
 		if item.typ == "val" {
-			if isnumber(item.val) {
+			if _, ok := tryConvertFloat64(item.val); ok {
 				expr.items[idx].typ = "num"
 			} else if isquotestring(item.val) {
 				expr.items[idx].typ = "string"
