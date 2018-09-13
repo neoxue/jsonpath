@@ -2,6 +2,7 @@ package jsonpath
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/lestrrat/go-file-rotatelogs"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -52,6 +53,17 @@ func TestJPGetArraySlice(t *testing.T) {
 	a := &JsonPath{Data: data}
 	result := a.Find("$[2:5:2]")
 	respect := &Result{collection: []interface{}{"test2", "test4"}, err: nil}
+	assert.True(t, len(result.collection) == len(respect.collection))
+	assert.True(t, reflect.TypeOf(result.collection[0]) == reflect.TypeOf(respect.collection[0]))
+	assert.True(t, result.collection[0].(string) == respect.collection[0].(string))
+	assert.True(t, result.collection[0] == respect.collection[0])
+}
+
+func TestJPGetArraySlice2(t *testing.T) {
+	data := []interface{}{"test", "test1", "test2", "test3", "test4", "test5", "test6"}
+	a := &JsonPath{Data: data}
+	result := a.Find("$[-1:]")
+	respect := &Result{collection: []interface{}{"test6"}, err: nil}
 	assert.True(t, len(result.collection) == len(respect.collection))
 	assert.True(t, reflect.TypeOf(result.collection[0]) == reflect.TypeOf(respect.collection[0]))
 	assert.True(t, result.collection[0].(string) == respect.collection[0].(string))
@@ -111,6 +123,19 @@ func TestJPGetArrayFilterExpressionGtEqualbeta1(t *testing.T) {
 	a := &JsonPath{Data: data}
 	result := a.Find("$.a[?(@ =~ $.b)]")
 	respect := &Result{collection: []interface{}{"test4"}, err: nil}
+	assert.True(t, len(result.collection) == len(respect.collection)-1)
+	//assert.True(t, reflect.TypeOf(result.collection[0]) == reflect.TypeOf(respect.collection[0]))
+	//assert.True(t, result.collection[0].(string) == respect.collection[0].(string))
+	//assert.True(t, result.collection[0] == respect.collection[0])
+}
+func TestJPGetArrayFilterExpressionGtEqualbeta2(t *testing.T) {
+	data := map[string]interface{}{}
+	json.Unmarshal([]byte("{\"a\":[\"test1\",\"test2\",\"test3\",\"test4\",\"test5\",\"test6\"], \"b\":4}"), &data)
+	a := &JsonPath{Data: data}
+	result := a.Find("$.a[?($ =~ $.b)]")
+	respect := &Result{collection: []interface{}{"test4"}, err: nil}
+	fmt.Println(result.err)
+	fmt.Println(result.collection)
 	assert.True(t, len(result.collection) == len(respect.collection)-1)
 	//assert.True(t, reflect.TypeOf(result.collection[0]) == reflect.TypeOf(respect.collection[0]))
 	//assert.True(t, result.collection[0].(string) == respect.collection[0].(string))

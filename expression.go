@@ -38,10 +38,10 @@ func (expr *expression) parse() error {
 // support only   val op val
 //           or   op val
 func (expr *expression) validateItems() error {
-	if len(expr.items) != 3 {
-		return errors.New("expression " + expr.sentence + " only supports 3 items")
+	if len(expr.items) != 3 && len(expr.items) != 1 {
+		return errors.New("expression " + expr.sentence + " only supports 3 or 1 items, ie: {lv op rv} {lv}")
 	}
-	if expr.items[0].val[0] != '@' {
+	if expr.items[0].val[0] != '@' && expr.items[0].val[0] != '$' {
 		return errors.New("expression " + expr.sentence + " first item should be jsonpath")
 	}
 	// validate typs

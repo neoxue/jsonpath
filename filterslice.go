@@ -29,14 +29,17 @@ func (f *filterSlice) getIndexes(v []int, length int) ([]int, bool) {
 	start := v[0]
 	end := v[1]
 	step := v[2]
-	k := start
-	ks := []int{k}
 	if step < 1 {
 		step = 1
 	}
-	if end == 0 {
-		end = length
+	if end <= 0 {
+		end += length
 	}
+	if start < 0 {
+		start += length
+	}
+	k := start
+	ks := []int{k}
 
 	for true {
 		if k+step < end {

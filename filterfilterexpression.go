@@ -19,6 +19,13 @@ func (f *filterFilterExpression) eval(action string, cv interface{}, optionalVal
 	varr := f.getCandidates(cv)
 	expr := f.t.v.(*expression)
 	// do filter
+	if len(expr.items) != 3 {
+		logrus.Warn("filter filter expression should contain 3 items")
+		return nil, false
+	}
+	if expr.items[0].val[0] != '@' {
+		logrus.Warn("filter filter expression should start by {@}, now {" + expr.items[0].val + "}")
+	}
 	op := expr.items[1].val
 	result := []interface{}{}
 	for _, v := range varr {

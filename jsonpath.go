@@ -19,16 +19,16 @@ type JsonPath struct {
 
 var parsedTokenCache = make(map[string][]pathtoken)
 
-//UnsetValue unsets json's value and return json
-func (jp *JsonPath) UnsetValue(expr string) ([]interface{}, error) {
+//UnsetValue unsets json's value and return bool,err
+func (jp *JsonPath) UnsetValue(expr string) (bool, error) {
 	jpr := jp.eval(actionUnset, expr, nil)
-	return jpr.collection, jpr.err
+	return jpr.err == nil, jpr.err
 }
 
-//SetValue sets json's value and return json
-func (jp *JsonPath) SetValue(expr string, v interface{}) ([]interface{}, error) {
+//SetValue sets json's value and return bool,err
+func (jp *JsonPath) SetValue(expr string, v interface{}) (bool, error) {
 	jpr := jp.eval(actionSet, expr, v)
-	return jpr.collection, jpr.err
+	return jpr.err == nil, jpr.err
 }
 
 //Find json's value and return JsonResult

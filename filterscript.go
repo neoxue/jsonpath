@@ -18,9 +18,19 @@ type filterScript struct {
 func (f *filterScript) eval(action string, cv interface{}, optionalValue interface{}) ([]interface{}, bool) {
 	varr := f.getCandidates(cv)
 	expr := f.t.v.(expression)
-	// do filter
-	op := expr.items[1].val
 	result := []interface{}{}
+	// do script
+
+	//
+	if len(expr.items) == 1 {
+
+	}
+	if len(expr.items) == 2 {
+		logrus.Warn("jsonpath filterscript do not support 2 params")
+		return nil, false
+	}
+
+	op := expr.items[1].val
 	for _, v := range varr {
 		sjp := &JsonPath{Data: v}
 		val, got, _ := sjp.Find(expr.items[0].val).First()
