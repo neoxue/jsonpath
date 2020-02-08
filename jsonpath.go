@@ -3,6 +3,7 @@ package jsonpath
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"sync"
 )
 
 const (
@@ -70,7 +71,11 @@ func (jp *JsonPath) eval(action string, expression string, optionalValue interfa
 	return &Result{collection: collection}
 }
 
+var mu sync.Mutex
+
 func (jp *JsonPath) parseTokens(expr string) ([]pathtoken, error) {
+	mu.Lock()
+	defer mu.Unlock()
 	var (
 		tokens []pathtoken
 		err    error
