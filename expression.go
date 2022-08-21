@@ -186,5 +186,5 @@ func isNormalCharacter(c byte) bool {
 }
 
 func isAvailableOp(tmp string) bool {
-	return tmp == "!" || tmp == "==" || tmp == "<" || tmp == ">" || tmp == "<=" || tmp == ">=" || tmp == "=~" || tmp == "+" || tmp == "-" || tmp == "*" || tmp == "-"
+	return tmp == "!" || tmp == "==" || tmp == "<" || tmp == ">" || tmp == "<=" || tmp == ">=" || tmp == "=~" || tmp == "+" || tmp == "-" || tmp == "*"
 }

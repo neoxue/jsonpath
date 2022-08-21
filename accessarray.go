@@ -83,7 +83,7 @@ func (ah *accessarray) getByList(keys interface{}) ([]interface{}, bool) {
 		for _, vi := range keys.([]int) {
 			vs = append(vs, ah.v[vi])
 		}
-	case string:
+	case []string:
 		for _, key := range keys.([]string) {
 			var vi int
 			var err error

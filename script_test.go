@@ -14,9 +14,19 @@ func Test_a(t *testing.T) {
 	lexer, _ := newLexer(`$[1,2   ,  3]`)
 	tokens, err := lexer.parseExpressionTokens()
 	assert.Equal(t, nil, err)
-	expected := []string{"1", "2", "3"}
-
+	expected := "1,2   ,  3"
 	assert.Equal(t, expected, tokens[0].v)
+	assert.Equal(t, "indexes", tokens[0].typ)
+
+	var stra = `["aaa","bbb","ccc","ddd"]`
+	var myjsona interface{}
+	json.Unmarshal([]byte(stra), &myjsona)
+	jpa := JsonPath{Data: myjsona}
+	resulta := jpa.Find(`$[1,2   ,  3]`)
+
+	assert.Equal(t, "bbb", resulta.collection[0].(string))
+	fmt.Println(resulta, err)
+	fmt.Println(resulta.collection)
 
 	str := `{
 		"a":"b",
